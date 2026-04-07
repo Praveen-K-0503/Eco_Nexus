@@ -1,0 +1,82 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to improve EcoNexus? We'd love to hear it!
+        Please search existing issues before submitting to avoid duplicates.
+
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: Platform Area
+      description: Which part of the platform does this feature relate to?
+      options:
+        - Waste Exchange
+        - Machinery Sharing
+        - Labor Pooling
+        - Workspace Sharing
+        - AI / Recommendations
+        - Authentication / Account
+        - Dashboard / Analytics
+        - Notifications
+        - Search
+        - Admin Panel
+        - Developer / API
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: Describe the feature clearly and concisely.
+      placeholder: As a [type of user], I want [some goal] so that [some reason].
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / Problem Statement
+      description: What problem does this feature solve? Why is it important?
+      placeholder: |
+        Currently, users have to... which means...
+        This feature would help by...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe how you envision the feature working. Include any UI/UX ideas.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation Notes
+      description: Any technical details, API changes, or database schema changes you foresee.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: willingness-to-contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to submit a pull request for this feature
