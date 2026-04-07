@@ -134,7 +134,7 @@ function PillarCard({ pillar, index }: { pillar: typeof pillars[0]; index: numbe
           className={`inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r ${pillar.accent} bg-clip-text text-transparent group-hover:gap-3 transition-all duration-200`}
         >
           Explore {pillar.title}
-          <ArrowRight size={14} className={`bg-gradient-to-r ${pillar.accent} text-transparent`} style={{ color: 'currentColor' }} />
+          <ArrowRight size={14} className="text-current" />
         </Link>
       </div>
     </motion.div>

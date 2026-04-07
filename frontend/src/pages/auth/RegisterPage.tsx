@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,8 +28,9 @@ const roles = [
 const steps = ['Account', 'Company', 'Role']
 
 export default function RegisterPage() {
-  const [step] = useState(0)
   const navigate = useNavigate()
+  // Progress indicator shows current form section (visual only — single-page form)
+  const step = 0
 
   const {
     register,
