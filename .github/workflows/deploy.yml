@@ -9,6 +9,8 @@ jobs:
     name: Deploy Frontend to Vercel
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: frontend
@@ -39,6 +41,8 @@ jobs:
     name: Deploy Backend to Railway
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
     needs: deploy-frontend
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +58,8 @@ jobs:
     name: Deploy AI Engine to Railway
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
     needs: deploy-frontend
     steps:
       - uses: actions/checkout@v4
