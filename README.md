@@ -1,157 +1,331 @@
-# EcoNexus 🌿
+# Eco_Nexus 🌿
 
-> AI-powered B2B circular economy marketplace platform
+> AI-powered B2B circular economy marketplace for waste, machinery, labor, and workspace sharing.
 
 [![CI](https://github.com/Praveen-K-0503/Eco_Nexus/actions/workflows/ci.yml/badge.svg)](https://github.com/Praveen-K-0503/Eco_Nexus/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Deploy](https://github.com/Praveen-K-0503/Eco_Nexus/actions/workflows/deploy.yml/badge.svg)](https://github.com/Praveen-K-0503/Eco_Nexus/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+![Status](https://img.shields.io/badge/status-active%20development-orange)
 
-## Overview
+**Status:** Active development (foundation/scaffolding stage; many product endpoints and UI flows are planned but not yet implemented in this branch).
 
-EcoNexus is a B2B marketplace that connects businesses to reduce waste and promote a circular economy through four core pillars:
+## Table of Contents
 
-| Pillar | Description |
-|--------|-------------|
-| ♻️ **Waste Exchange** | Buy/sell industrial waste as raw materials |
-| 🏗️ **Machinery Sharing** | Rent idle equipment between businesses |
-| 👷 **Labor Pooling** | Share seasonal or specialized workforce |
-| 🏭 **Workspace Sharing** | Rent unused industrial/office space |
+- [Problem Statement and Product Vision](#problem-statement-and-product-vision)
+- [Marketplace Pillars](#marketplace-pillars)
+- [Current vs Planned Capabilities](#current-vs-planned-capabilities)
+- [High-Level Architecture](#high-level-architecture)
+- [System Interaction Diagram](#system-interaction-diagram)
+- [Lifecycle Workflow](#lifecycle-workflow)
+- [Domain/Data Model](#domaindata-model)
+- [Tech Stack and Rationale](#tech-stack-and-rationale)
+- [Repository Structure](#repository-structure)
+- [Local Setup (Docker Compose)](#local-setup-docker-compose)
+- [Run Without Docker](#run-without-docker)
+- [Environment Configuration](#environment-configuration)
+- [Testing, Linting, Type-Checking, and CI](#testing-linting-type-checking-and-ci)
+- [API and Service Overview](#api-and-service-overview)
+- [Security and Data Handling](#security-and-data-handling)
+- [Contribution Workflow](#contribution-workflow)
+- [Documentation Index](#documentation-index)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap and Project Status](#roadmap-and-project-status)
+- [License](#license)
+- [Support / Contact](#support--contact)
 
-AI-driven matching recommendations surface the best opportunities for each business, reducing costs and environmental impact simultaneously.
+## Problem Statement and Product Vision
 
----
+Industrial ecosystems often waste reusable materials, underutilize machinery, face labor-demand mismatch, and leave workspace idle. Eco_Nexus aims to turn these inefficiencies into a circular B2B exchange network where businesses can:
 
-## Features
+- reduce disposal and procurement costs,
+- increase asset utilization,
+- improve operational resilience,
+- and measure environmental impact (for example, reduced landfill contribution and avoided emissions).
 
-- **Smart Matching** — ML-based recommendations for waste, machinery, labor, and workspace
-- **Verified Listings** — Company verification and review system
-- **Real-time Notifications** — Instant alerts for matches and messages
-- **Secure Transactions** — JWT authentication, RBAC, end-to-end encryption
-- **Analytics Dashboard** — Track savings, CO₂ offset, and circular economy metrics
+## Marketplace Pillars
 
----
+Eco_Nexus is organized into four core B2B exchanges:
 
-## Tech Stack
+| Pillar | Primary Users | Example Listing | Example Outcome |
+|---|---|---|---|
+| ♻️ Waste Exchange | Manufacturers, recyclers, processors | “Copper wire offcuts, 500 kg” | Seller monetizes scrap; buyer sources lower-cost raw input |
+| 🏗️ Machinery Sharing | Equipment owners, factories, contractors | “Idle CNC machine, daily/weekly rental” | Owner earns from idle assets; renter avoids capex |
+| 👷 Labor Pooling | Staffing firms, SMEs, seasonal operators | “Certified welders available for 3-week shift” | Demand spikes covered without full-time hiring |
+| 🏭 Workspace Sharing | Warehouse owners, cold-chain operators, SMEs | “Unused warehouse section, 2,000 sq ft” | Owner improves occupancy; tenant gets short-term capacity |
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, TypeScript, Vite, TailwindCSS, Framer Motion |
-| Backend | Node.js, Express, TypeScript, MongoDB, Redis |
-| AI/ML | Python, FastAPI, Scikit-learn, Pandas |
-| DevOps | Docker, Docker Compose, GitHub Actions |
+## Current vs Planned Capabilities
 
----
+The repository currently contains foundational service scaffolding and documentation for a broader product scope.
 
-## Quick Start
+| Area | Current in repository | Planned / In-progress |
+|---|---|---|
+| Frontend | Vite + React + TypeScript app with basic router shell (`/`) | Full premium UI/UX flows (landing, auth, dashboard, marketplace routes) described in docs/roadmap |
+| Backend | Express server, security middleware, `/health`, `/api` base response | Auth, listing CRUD, booking, transactions, notifications, RBAC endpoints |
+| AI Engine | FastAPI service with `/`, `/health`, OpenAPI docs (`/docs`) | Matching endpoints (`/match/*`) and price recommendation APIs |
+| Infrastructure | Dockerfiles, `docker-compose.yml`, CI + deploy workflows | Production hardening, expanded observability, launch-readiness |
+
+> For target feature behavior and contracts, refer to [`docs/FEATURE_SPECS.md`](./docs/FEATURE_SPECS.md) and [`docs/API_SPEC.md`](./docs/API_SPEC.md).
+
+## High-Level Architecture
+
+Eco_Nexus uses a multi-service architecture:
+
+- **Browser + Frontend (`frontend/`)**: React SPA for user workflows.
+- **Backend API (`backend/`)**: Express service for business logic, auth, and orchestration.
+- **AI Engine (`ai-engine/`)**: FastAPI service for matching and recommendations.
+- **MongoDB**: primary document store.
+- **Redis**: caching/session/rate-limit support.
+
+## System Interaction Diagram
+
+```mermaid
+flowchart LR
+    B[Browser] -->|HTTPS / UI| F[Frontend\nReact + Vite]
+    F -->|REST /api| API[Backend\nNode.js + Express]
+    API -->|Mongoose| DB[(MongoDB)]
+    API -->|Cache / rate-limit| R[(Redis)]
+    API -->|HTTP| AI[AI Engine\nFastAPI]
+    AI -->|Read/Write model data| DB
+    AI -->|Cache inference artifacts| R
+```
+
+## Lifecycle Workflow
+
+```mermaid
+flowchart TD
+    A[Business creates listing] --> B[Platform validates and publishes]
+    B --> C[Matching engine ranks counterparties]
+    C --> D[Buyer/Seller negotiation or booking request]
+    D --> E[Agreement and transaction confirmation]
+    E --> F[Fulfillment and completion]
+    F --> G[Impact tracking\n(cost savings, reuse, emissions proxy)]
+```
+
+## Domain/Data Model
+
+```mermaid
+erDiagram
+    USER ||--o{ LISTING : creates
+    USER ||--o{ TRANSACTION : participates_in
+    LISTING ||--o{ MATCH : source_or_candidate
+    MATCH }o--|| USER : matched_party
+    TRANSACTION }o--|| LISTING : references
+    TRANSACTION ||--o{ IMPACT_METRIC : produces
+
+    USER {
+        string id
+        string role
+        string company
+    }
+    LISTING {
+        string id
+        string pillar
+        string status
+        number price
+    }
+    MATCH {
+        string id
+        number score
+        datetime createdAt
+    }
+    TRANSACTION {
+        string id
+        string state
+        number value
+    }
+    IMPACT_METRIC {
+        string id
+        number co2OffsetEstimate
+        number costSavingsEstimate
+    }
+```
+
+## Tech Stack and Rationale
+
+| Layer | Stack | Why this choice |
+|---|---|---|
+| Frontend | React 18, TypeScript, Vite, TailwindCSS | Fast iteration, strong typing, modern DX |
+| Backend | Node.js, Express, TypeScript | Widely adopted API stack, straightforward service composition |
+| AI Service | Python 3.11, FastAPI, scikit-learn, pandas | Rapid model/API development with strong ML ecosystem |
+| Data | MongoDB, Redis | Flexible listing schemas + low-latency cache/state |
+| DevOps | Docker, Docker Compose, GitHub Actions | Consistent local environment and automated checks |
+
+## Repository Structure
+
+```text
+Eco_Nexus/
+├── frontend/                 # React + TypeScript frontend service
+│   ├── src/
+│   └── .env.example
+├── backend/                  # Node.js + Express backend service
+│   ├── src/
+│   └── .env.example
+├── ai-engine/                # FastAPI AI service
+│   ├── src/
+│   └── .env.example
+├── docs/                     # Detailed architecture, API, security, setup docs
+├── .github/workflows/        # CI and deployment workflows
+├── docker-compose.yml        # Multi-service local orchestration
+├── CONTRIBUTING.md
+└── README.md
+```
+
+## Local Setup (Docker Compose)
 
 ### Prerequisites
-- Node.js ≥ 20
-- Python ≥ 3.11
-- Docker & Docker Compose
-- MongoDB Atlas account (or local MongoDB)
 
-### Run with Docker Compose (recommended)
+- Docker + Docker Compose v2
+- Git
+- (Optional for non-Docker flows) Node.js 20+, npm, Python 3.11
+
+### Quick Start
 
 ```bash
 git clone https://github.com/Praveen-K-0503/Eco_Nexus.git
 cd Eco_Nexus
 
-# Copy env files
 cp frontend/.env.example frontend/.env
 cp backend/.env.example backend/.env
 cp ai-engine/.env.example ai-engine/.env
 
-# Start all services
 docker compose up --build
 ```
 
-Services will be available at:
+### Service URLs
+
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
+- Backend health: http://localhost:5000/health
 - AI Engine: http://localhost:8000
+- AI Engine health: http://localhost:8000/health
+- AI Engine OpenAPI docs: http://localhost:8000/docs
+- MongoDB: `mongodb://localhost:27017`
+- Redis: `redis://localhost:6379`
 
-### Run locally (development)
+## Run Without Docker
+
+### Frontend
 
 ```bash
-# Frontend
-cd frontend && npm install && npm run dev
-
-# Backend
-cd backend && npm install && npm run dev
-
-# AI Engine
-cd ai-engine && pip install -r requirements.txt && uvicorn src.main:app --reload --port 8000
+cd frontend
+npm install
+npm run dev
 ```
 
-See [docs/SETUP.md](docs/SETUP.md) for full setup instructions.
+### Backend
 
----
-
-## Project Structure
-
-```
-Eco_Nexus/
-├── frontend/          # React + TypeScript + Vite SPA
-│   └── src/
-│       ├── components/  # Reusable UI components
-│       ├── pages/       # Route-level page components
-│       ├── hooks/       # Custom React hooks
-│       ├── store/       # Zustand state management
-│       ├── services/    # API client functions
-│       └── types/       # TypeScript type definitions
-├── backend/           # Express + TypeScript REST API
-│   └── src/
-│       ├── config/      # DB and app config
-│       ├── models/      # Mongoose schemas
-│       ├── routes/      # Express routers
-│       ├── controllers/ # Route handlers
-│       ├── middleware/  # Auth, validation, error handling
-│       ├── services/    # Business logic
-│       └── utils/       # Helper functions
-├── ai-engine/         # FastAPI Python AI/ML service
-│   └── src/
-│       ├── models/      # ML model classes
-│       ├── routes/      # FastAPI routers
-│       └── services/    # Matching & recommendation logic
-├── docs/              # Project documentation
-└── .github/           # CI/CD workflows and templates
+```bash
+cd backend
+npm install
+npm run dev
 ```
 
----
+### AI Engine
 
-## Documentation
+```bash
+cd ai-engine
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn src.main:app --reload --port 8000
+```
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [API Specification](docs/API_SPEC.md)
-- [Database Schema](docs/DATABASE_SCHEMA.md)
-- [Development Roadmap](docs/DEVELOPMENT_ROADMAP.md)
-- [Feature Specs](docs/FEATURE_SPECS.md)
-- [User Stories](docs/USER_STORIES.md)
-- [Security](docs/SECURITY.md)
-- [Testing Strategy](docs/TESTING_STRATEGY.md)
-- [Design System](docs/DESIGN_SYSTEM.md)
-- [Setup Guide](docs/SETUP.md)
-- [Tech Stack Rationale](docs/TECH_STACK.md)
+## Environment Configuration
 
----
+Use service-level env examples as source of truth:
 
-## Contributing
+- [`frontend/.env.example`](./frontend/.env.example)
+- [`backend/.env.example`](./backend/.env.example)
+- [`ai-engine/.env.example`](./ai-engine/.env.example)
 
-We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
+Key variables (examples only, do not commit secrets):
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes using [Conventional Commits](https://www.conventionalcommits.org)
-4. Push and open a Pull Request
+| Service | Variables |
+|---|---|
+| Frontend | `VITE_API_BASE_URL`, `VITE_AI_ENGINE_URL`, `VITE_APP_NAME`, `VITE_APP_VERSION` |
+| Backend | `PORT`, `MONGODB_URI`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `REDIS_URL`, `AI_ENGINE_URL`, `CORS_ORIGIN`, SMTP and upload/rate-limit settings |
+| AI Engine | `MONGODB_URI`, `REDIS_URL`, `MODEL_PATH`, `LOG_LEVEL` |
 
----
+## Testing, Linting, Type-Checking, and CI
 
-## Team
+### Local Commands (from repo scripts/docs)
 
-Built with ❤️ for a sustainable future.
+- Frontend lint: `cd frontend && npm run lint`
+- Frontend tests: `cd frontend && npm run test`
+- Frontend build (includes `tsc`): `cd frontend && npm run build`
+- Backend lint: `cd backend && npm run lint`
+- Backend tests: `cd backend && npm run test`
+- Backend compile (TypeScript): `cd backend && npm run build`
+- AI engine tests (documented): `cd ai-engine && pytest --cov=src --cov-report=term-missing`
 
----
+> Note: dedicated standalone `typecheck` scripts are not currently defined in `frontend/package.json` or `backend/package.json`.
+
+### CI Workflows
+
+- [`CI`](./.github/workflows/ci.yml): frontend lint/test, backend lint/test, AI pytest.
+- [`Deploy`](./.github/workflows/deploy.yml): frontend deployment + backend/AI deployment jobs.
+
+This README does **not** assume all CI jobs are currently green for every branch/PR; check the Actions tab for current run status.
+
+## API and Service Overview
+
+| Service | Available now in code | Planned contract docs |
+|---|---|---|
+| Backend (`backend`) | `GET /health`, `GET /api` | [`docs/API_SPEC.md`](./docs/API_SPEC.md) |
+| AI Engine (`ai-engine`) | `GET /`, `GET /health`, `GET /docs` | AI endpoint plan in [`docs/FEATURE_SPECS.md`](./docs/FEATURE_SPECS.md) |
+| Frontend (`frontend`) | SPA shell route (`/`) | UX scope in [`docs/FEATURE_SPECS.md`](./docs/FEATURE_SPECS.md), [`docs/USER_STORIES.md`](./docs/USER_STORIES.md) |
+
+## Security and Data Handling
+
+- Follow [`docs/SECURITY.md`](./docs/SECURITY.md) for auth, token handling, RBAC, CORS, and incident response guidance.
+- Never commit `.env` secrets.
+- Use placeholder values in examples only.
+- Report vulnerabilities privately per security policy.
+
+## Contribution Workflow
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+Typical flow:
+
+1. Create a feature branch.
+2. Make focused changes with tests/docs updates as needed.
+3. Run relevant lint/test/build commands.
+4. Open a pull request with clear scope.
+
+## Documentation Index
+
+- [Architecture](./docs/ARCHITECTURE.md)
+- [API Specification](./docs/API_SPEC.md)
+- [Database Schema](./docs/DATABASE_SCHEMA.md)
+- [Development Roadmap](./docs/DEVELOPMENT_ROADMAP.md)
+- [Feature Specs](./docs/FEATURE_SPECS.md)
+- [User Stories](./docs/USER_STORIES.md)
+- [Security](./docs/SECURITY.md)
+- [Testing Strategy](./docs/TESTING_STRATEGY.md)
+- [Design System](./docs/DESIGN_SYSTEM.md)
+- [Setup Guide](./docs/SETUP.md)
+- [Tech Stack](./docs/TECH_STACK.md)
+
+## Troubleshooting
+
+- **Ports already in use**: stop conflicting local services/containers, then retry.
+- **Containers unhealthy**: run `docker compose ps` and inspect logs with `docker compose logs -f <service>`.
+- **Backend cannot reach DB/Redis**: verify `MONGODB_URI` and `REDIS_URL` in `backend/.env`.
+- **AI Engine import/runtime issues**: recreate venv and reinstall `ai-engine/requirements.txt`.
+- **Frontend cannot call APIs**: verify `frontend/.env` URLs and CORS origin in backend env.
+
+## Roadmap and Project Status
+
+- Current state aligns with early foundation milestones (service scaffolds, Docker setup, CI/deploy workflows, and extensive planning docs).
+- Core marketplace CRUD flows, auth workflows, advanced UI routes, and AI matching endpoints are documented but still in-progress/planned in this branch.
+- See [`docs/DEVELOPMENT_ROADMAP.md`](./docs/DEVELOPMENT_ROADMAP.md) for phased milestones.
 
 ## License
 
-[MIT](LICENSE) © EcoNexus Team
-AI-powered B2B circular economy marketplace for waste, machinery, labor &amp; workspace sharing
+Licensed under the [MIT License](./LICENSE).
+
+## Support / Contact
+
+- Use GitHub Issues for feature requests and non-sensitive bugs.
+- For security issues, follow the private disclosure guidance in [`docs/SECURITY.md`](./docs/SECURITY.md).
